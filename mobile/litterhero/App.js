@@ -1,19 +1,42 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import {createStackNavigator, createAppContainer} from 'react-navigation'; // 1.0.0-beta.27
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-    </View>
-  );
-}
+import colors from './config/colors';
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+import CameraScreen from './screens/CameraScreen';
+//import SettingsScreen from './screens/SettingsScreen';
+//import DetailsScreen from './screens/DetailsScreen';
+
+const MainStack = createStackNavigator(
+  {
+    CameraScreen: {
+      screen: CameraScreen,
+    },
+    // Settings: {
+    //   screen: SettingsScreen,
+    // },
+    // DetailsScreen: {
+    //   screen: DetailsScreen,
+    // },
   },
-});
+  {
+    initialRouteName: 'CameraScreen',
+    defaultNavigationOptions: {
+      headerStyle: {
+        backgroundColor: colors.BLACK,
+      },
+      headerTintColor: '#fff',
+      headerTitleStyle: {
+        fontWeight: 'bold',
+      },
+    },
+  }
+);
+
+const AppContainer = createAppContainer(MainStack);
+
+export default class App extends React.Component {
+  render() {
+    return <AppContainer />;
+  }
+}
