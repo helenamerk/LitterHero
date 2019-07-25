@@ -33,6 +33,31 @@ export const submitTicket = async (uri, location) => {
   });
 };
 
+export const getTickets = () => {
+  return [
+    {
+      id: '123',
+      type: 'poop',
+      url:
+        'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/socialmedia/apple/198/pile-of-poo_1f4a9.png',
+      status: 'Unclaimed',
+      description: 'User entered text',
+      location: '5th & Market, SF',
+      upvotes: 5,
+    },
+    {
+      id: '132',
+      type: 'poop',
+      url:
+        'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/socialmedia/apple/198/pile-of-poo_1f4a9.png',
+      status: 'Unclaimed',
+      description: 'User entered text',
+      location: '5th & Market, SF',
+      upvotes: 5,
+    },
+  ];
+};
+
 /*
 long:
 lat:

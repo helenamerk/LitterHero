@@ -1,6 +1,7 @@
 const colors = {
   BLACK: '#000',
   WHITE: '#FFF',
+  SEE_THROUGH: 'rgba(255,255,255,0.5)',
   PURPLE: 'rgb(94,53,177)',
   BLUE: '#428AF8',
   LIGHT_BLUE: '#87C3FF',

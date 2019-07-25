@@ -4,23 +4,23 @@ import {createStackNavigator, createAppContainer} from 'react-navigation'; // 1.
 import colors from './config/colors';
 
 import CameraScreen from './screens/CameraScreen';
-//import SettingsScreen from './screens/SettingsScreen';
-//import DetailsScreen from './screens/DetailsScreen';
+import LoginScreen from './screens/LoginScreen';
+import LoadingScreen from './screens/LoadingScreen';
 
 const MainStack = createStackNavigator(
   {
     CameraScreen: {
       screen: CameraScreen,
     },
-    // Settings: {
-    //   screen: SettingsScreen,
-    // },
-    // DetailsScreen: {
-    //   screen: DetailsScreen,
-    // },
+    LoginScreen: {
+      screen: LoginScreen,
+    },
+    LoadingScreen: {
+      screen: LoadingScreen,
+    },
   },
   {
-    initialRouteName: 'CameraScreen',
+    initialRouteName: 'LoadingScreen',
     defaultNavigationOptions: {
       headerStyle: {
         backgroundColor: colors.BLACK,

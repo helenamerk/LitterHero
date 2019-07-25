@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   FlatList,
+  Image,
 } from 'react-native';
 import {SafeAreaView} from 'react-navigation';
 import * as Permissions from 'expo-permissions';
@@ -13,10 +14,14 @@ import Swiper from 'react-native-swiper';
 
 import ListItemDivider from '../components/ListItemDivider';
 import ListTicket from '../components/ListTicket';
+import FormTextInput from '../components/FormTextInput';
+import DismissKeyboardView from '../components/DismissKeyboardView';
+import {BlueButton} from '../components/Button';
 
 import {Ionicons} from '@expo/vector-icons';
 import styles from '../config/styles';
 import colors from '../config/colors';
+import {getTickets} from '../requests';
 import Lottie from 'lottie-react-native';
 
 class CameraScreen extends React.Component {
@@ -32,22 +37,18 @@ class CameraScreen extends React.Component {
     type: Camera.Constants.Type.back,
     data: [],
     loading: false,
+    image: null,
+    description: '',
+    charCountStyle: styles.subtitleText,
   };
 
   async componentDidMount() {
     const {status} = await Permissions.askAsync(Permissions.CAMERA);
     this.setState({hasCameraPermission: status === 'granted'});
 
-    firstItem = {
-      id: '123',
-      type: 'poop',
-      url:
-        'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/socialmedia/apple/198/pile-of-poo_1f4a9.png',
-      status: 'Unclaimed',
-      location: '5th & Market, SF',
-    };
+    data = getTickets();
 
-    this.setState({data: [firstItem]});
+    this.setState({data: data});
     //this.animation.play();
   }
 
@@ -73,7 +74,10 @@ class CameraScreen extends React.Component {
       const imageData = await this.camera.takePictureAsync(options);
       const locationData = await this.getCurrentLocation();
 
+      this.setState({image: imageData.uri});
+
       console.log(imageData.uri);
+      console.log(this.state.image);
       console.log(locationData);
 
       console.log('would navigate here!');
@@ -81,6 +85,10 @@ class CameraScreen extends React.Component {
       //   photoURI: imageData.uri,
       // });
     }
+  };
+
+  deletePicture = async () => {
+    this.setState({image: null});
   };
 
   viewStyle() {
@@ -113,7 +121,20 @@ class CameraScreen extends React.Component {
     );
   };
 
-  onTicketPress() {
+  upvoteTicket = (i) => {
+    data = this.state.data;
+    console.log(data);
+    console.log(data[0]['upvotes']);
+    console.log(i);
+    data[i]['upvotes'] = data[i]['upvotes'] + 1;
+    this.setState({data: data});
+  };
+
+  onTicketPress(i) {
+    console.log('i');
+    console.log(i);
+    this.upvoteTicket(i);
+
     console.log('ticket pressed');
   }
 
@@ -123,7 +144,12 @@ class CameraScreen extends React.Component {
   };
 
   render() {
-    const {hasCameraPermission} = this.state;
+    const {hasCameraPermission, image} = this.state;
+    const limit = 100;
+
+    console.log('image');
+    console.log(image);
+
     if (hasCameraPermission === null) {
       return <View />;
     } else if (hasCameraPermission === false) {
@@ -146,7 +172,7 @@ class CameraScreen extends React.Component {
               renderItem={({item, index}) => (
                 <ListTicket
                   ticket={item}
-                  onPress={() => this.onTicketPress(item)}
+                  onPress={() => this.onTicketPress(index)}
                 />
               )}
               keyExtractor={(item) => item.id}
@@ -157,41 +183,114 @@ class CameraScreen extends React.Component {
           </View>
 
           <View style={{flex: 1}}>
-            <Camera
-              style={{flex: 1}}
-              type={this.state.type}
-              ref={(ref) => {
-                this.camera = ref;
-              }}
-            >
-              <View
+            {image && (
+              // if image, show image :)
+              // add a delete image button!
+              // add a description field
+              <DismissKeyboardView
                 style={{
                   flex: 1,
-                  backgroundColor: 'transparent',
-                  flexDirection: 'row',
+                  alignItems: 'stretch',
+                  justifyContent: 'flex-start',
+                  padding: 20,
+                  marginTop: 50,
                 }}
               >
-                <TouchableOpacity
-                  style={styles.cameraScreenStyle}
-                  onPress={this.takeAndLocatePicture}
+                <FormTextInput
+                  multiline={true}
+                  numberOfLines={6}
+                  maxLength={130}
+                  placeholder='Describe what this looks like.'
+                  value={this.state.description}
+                  onChangeText={(description) => {
+                    this.setState({
+                      charCountStyle:
+                        description.length < limit
+                          ? styles.subtitleText
+                          : styles.alertText,
+                    });
+                    this.setState({description});
+                  }}
+                  style={{height: 100}}
+                />
+                <Text style={this.state.charCountStyle}>
+                  Characters Left: {this.state.description.length}/{limit}
+                  {'\n'}
+                </Text>
+                <Image style={styles.largeImage} source={{uri: image}} />
+                <BlueButton
+                  onPress={() => {
+                    console.log('hello');
+                    this.setState({image: null});
+                  }}
+                  label='Submit'
+                  color={colors.BLACK}
+                />
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: 'transparent',
+                    flexDirection: 'row',
+                  }}
                 >
-                  <Ionicons
-                    name='ios-arrow-dropup-circle'
-                    size={40}
-                    color='white'
-                  />
-                  <Text
-                    style={{
-                      fontSize: 25,
-                      marginBottom: 30,
-                      marginTop: 10,
-                      color: 'white',
-                    }}
+                  <TouchableOpacity
+                    style={styles.cameraScreenStyle}
+                    onPress={this.deletePicture}
                   >
-                    {' '}
-                    File Ticket{' '}
-                  </Text>
-                  {/* Add an animated button?
+                    <Ionicons name='md-close-circle' size={40} color='black' />
+                    <Text
+                      style={{
+                        fontSize: 25,
+                        marginBottom: 30,
+                        marginTop: 10,
+                        color: 'black',
+                      }}
+                    >
+                      {' '}
+                      Delete Image{' '}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </DismissKeyboardView>
+            )}
+            {!image && (
+              // if no image, render camera!
+
+              <Camera
+                style={{flex: 1}}
+                type={this.state.type}
+                ref={(ref) => {
+                  this.camera = ref;
+                }}
+              >
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: 'transparent',
+                    flexDirection: 'row',
+                  }}
+                >
+                  <TouchableOpacity
+                    style={styles.cameraScreenStyle}
+                    onPress={this.takeAndLocatePicture}
+                  >
+                    <Ionicons
+                      name='ios-arrow-dropup-circle'
+                      size={40}
+                      color='white'
+                    />
+                    <Text
+                      style={{
+                        fontSize: 25,
+                        marginBottom: 30,
+                        marginTop: 10,
+                        color: 'white',
+                      }}
+                    >
+                      {' '}
+                      File Ticket{' '}
+                    </Text>
+                    {/* Add an animated button?
                   <Lottie
                     ref={(animation) => {
                       this.animation = animation;
@@ -203,12 +302,22 @@ class CameraScreen extends React.Component {
                     }}
                     source={require('../assets/take_photo.json')}
                   /> */}
-                </TouchableOpacity>
-              </View>
-            </Camera>
+                  </TouchableOpacity>
+                </View>
+              </Camera>
+            )}
           </View>
           <View style={this.viewStyle()}>
-            <Text style={{fontSize: 48, color: 'white'}}>Bottom</Text>
+            <Text
+              style={{
+                fontSize: 30,
+                color: colors.REAL_GREY,
+                padding: 30,
+                textAlign: 'center',
+              }}
+            >
+              To report urgent incidents, reach out to 911 directly.
+            </Text>
           </View>
         </Swiper>
       );

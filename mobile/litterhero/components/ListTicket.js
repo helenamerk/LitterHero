@@ -1,7 +1,8 @@
 import * as React from 'react';
-import {ListItem} from 'react-native-elements';
+import {ListItem, Badge} from 'react-native-elements';
 import {View, Text, Image} from 'react-native';
 import styles from '../config/styles';
+import colors from '../config/colors';
 
 export default class ListTicket extends React.Component {
   render() {
@@ -26,13 +27,12 @@ export default class ListTicket extends React.Component {
           </View>
         }
         badge={{
-          value: `Ticket ID: ${ticket.id}`,
-          textStyle: {color: 'white'},
-          containerStyle: {marginTop: -20},
+          value: `UPVOTES: ${ticket.upvotes}`,
+          textStyle: {color: 'white', fontSize: 12},
         }}
         rightElement={
           <Image
-            style={{width: 100, height: 100}}
+            style={{width: 100, height: '100%'}}
             source={{
               uri: ticket.url,
             }}

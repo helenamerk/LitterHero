@@ -53,9 +53,50 @@ const styles = StyleSheet.create({
     alignContent: 'center',
     width: '100%',
   },
+  form: {
+    flex: 1,
+    justifyContent: 'center',
+    alignSelf: 'center',
+    width: '100%',
+    backgroundColor: colors.WHITE,
+  },
+  formFields: {
+    flex: 1,
+    justifyContent: 'center',
+    alignSelf: 'center',
+    width: '80%',
+    backgroundColor: colors.SEE_THROUGH,
+    paddingTop: 20,
+  },
   subtitleText: {
     paddingLeft: 0,
     color: colors.REAL_GREY,
+  },
+  largeImage: {
+    flex: 1,
+    width: 1000,
+    height: 1000,
+    position: 'absolute',
+  },
+  alertText: {
+    paddingLeft: 0,
+    color: colors.TORCH_RED,
+  },
+  buttonStyleContainer: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.BLUE,
+    marginBottom: 12,
+    paddingVertical: 12,
+    borderRadius: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.7)',
+  },
+  buttonStyleText: {
+    color: colors.WHITE,
+    textAlign: 'left',
+    height: 20,
   },
 });
 
