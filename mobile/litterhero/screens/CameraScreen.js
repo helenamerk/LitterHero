@@ -204,6 +204,10 @@ class CameraScreen extends React.Component {
     // clearing content
     //console.log('hello');
     this.setState({image: null});
+
+    getTickets().then((res) => {
+      this.setState({data: res});
+    });
   };
 
   render() {
