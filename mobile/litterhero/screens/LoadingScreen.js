@@ -20,7 +20,7 @@ class LoadingScreen extends React.Component {
   };
 
   componentDidMount() {
-    Storage.removeItem('phone');
+    //Storage.removeItem('phone'); // Uncomment for re-login per use case.
     this.animation.play();
     Storage.getItem('phone').then((value) => {
       if (value === null) {
