@@ -21,7 +21,8 @@
       "supportsTablet": false,
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to take pictures of litter."
-      }
+      },
+      "bundleIdentifier": "com.litterhero"
     },
     "description": "Cleaning your city, one picture at a time!",
     "githubUrl": "https://github.com/helenamerk/LitterHero"

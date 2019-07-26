@@ -7,7 +7,6 @@ import {
   FlatList,
   Image,
   Keyboard,
-  TextInput,
 } from 'react-native';
 import {SafeAreaView} from 'react-navigation';
 import * as Permissions from 'expo-permissions';
@@ -26,6 +25,7 @@ import colors from '../config/colors';
 import {getTickets, submitTicket, getFormattedTimestamp} from '../requests';
 import Lottie from 'lottie-react-native';
 import MultiToggleSwitch from 'react-native-multi-toggle-switch';
+import {Button} from 'react-native-elements';
 
 import SubmissionPending from '../components/SubmissionPending';
 
@@ -401,37 +401,41 @@ class CameraScreen extends React.Component {
                     top: 150,
                     flexDirection: 'row',
                     alignContent: 'center',
+                    justifyContent: 'space-evenly',
                     width: '100%',
-                    marginLeft: 5,
-                    marginRight: 5,
-                    right: 5,
                   }}
                 >
                   {/**Note: submit ticket id hardcoded and mapped to service code */}
-                  <TouchableOpacity
+                  <Button
+                    raised
+                    title='Feces'
+                    type='outline'
+                    onPress={() => this.handleSubmitTicket(0)}
+                  />
+                  <Button
+                    raised
+                    title='Needle'
+                    type='outline'
+                    onPress={() => this.handleSubmitTicket(1)}
+                  />
+                  <Button
+                    raised
+                    title='Graffiti'
+                    type='outline'
+                    onPress={() => this.handleSubmitTicket(2)}
+                  />
+                  <Button
+                    raised
+                    title='Pothole'
+                    type='outline'
+                    onPress={() => this.handleSubmitTicket(3)}
+                  />
+                  {/*<TouchableOpacity
                     onPress={() => this.handleSubmitTicket(0)}
                     style={styles.layoverButton}
                   >
                     <Text style={styles.layoverButtonText}> Feces </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => this.handleSubmitTicket(1)}
-                    style={styles.layoverButton}
-                  >
-                    <Text style={styles.layoverButtonText}> Needle </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => this.handleSubmitTicket(2)}
-                    style={styles.layoverButton}
-                  >
-                    <Text style={styles.layoverButtonText}> Graffiti </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => this.handleSubmitTicket(3)}
-                    style={styles.layoverButton}
-                  >
-                    <Text style={styles.layoverButtonText}> Pothole </Text>
-                  </TouchableOpacity>
+                  </TouchableOpacity>*/}
                 </View>
                 <View
                   style={{
