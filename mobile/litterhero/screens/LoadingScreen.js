@@ -20,8 +20,9 @@ class LoadingScreen extends React.Component {
   };
 
   componentDidMount() {
+    Storage.removeItem('phone');
     this.animation.play();
-    Storage.getItem('email').then((value) => {
+    Storage.getItem('phone').then((value) => {
       if (value === null) {
         this.props.navigation.replace('LoginScreen');
       } else {

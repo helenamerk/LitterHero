@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
     borderColor: colors.SILVER,
     borderBottomWidth: StyleSheet.hairlineWidth,
     marginBottom: 20,
-    backgroundColor: colors.WHITE,
+    backgroundColor: 'rgba(250,250,250,0)',
     fontSize: 20,
   },
 });

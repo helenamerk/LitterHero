@@ -6,6 +6,7 @@ import FormTextInput from '../components/FormTextInput';
 import styles from '../config/styles';
 import Storage from '../lib/Storage';
 import Lottie from 'lottie-react-native';
+import {loginUser} from '../requests';
 
 class LoginScreen extends React.Component {
   static navigationOptions = ({navigation, navigationOptions}) => {
@@ -19,12 +20,12 @@ class LoginScreen extends React.Component {
   };
 
   state = {
-    email: '',
+    phone: '',
     name: '',
   };
 
-  handleEmailChange = (email) => {
-    this.setState({email: email});
+  handlephoneChange = (phone) => {
+    this.setState({phone: phone});
   };
 
   handleNameChange = (name) => {
@@ -32,8 +33,9 @@ class LoginScreen extends React.Component {
   };
 
   handleLoginPress = async () => {
-    await Storage.setItem('email', this.state.email);
+    await Storage.setItem('phone', this.state.phone);
     await Storage.setItem('name', this.state.name);
+    await loginUser(this.state.name, this.state.phone);
     this.props.navigation.replace('CameraScreen');
   };
 
@@ -57,7 +59,7 @@ class LoginScreen extends React.Component {
             style={{
               flex: 1,
               top: 25,
-              left: -125,
+              left: -80,
               height: 100,
               width: 100,
               backgroundColor: 'transparent',
@@ -71,9 +73,10 @@ class LoginScreen extends React.Component {
               placeholder='Name'
             />
             <FormTextInput
-              value={this.state.email}
-              onChangeText={this.handleEmailChange}
-              placeholder='Email'
+              value={this.state.phone}
+              onChangeText={this.handlephoneChange}
+              placeholder='Phone'
+              keyboardType='numeric'
             />
             <BlueButton label='Start' onPress={this.handleLoginPress} />
           </View>

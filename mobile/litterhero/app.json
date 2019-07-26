@@ -4,7 +4,11 @@
     "slug": "litterhero",
     "privacy": "public",
     "sdkVersion": "33.0.0",
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,12 +20,16 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to take pictures of litter."
       }
-    }
+    },
+    "description": "Cleaning your city, one picture at a time!",
+    "githubUrl": "https://github.com/helenamerk/LitterHero"
   }
 }

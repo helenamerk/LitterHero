@@ -6,6 +6,8 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  Keyboard,
+  TextInput,
 } from 'react-native';
 import {SafeAreaView} from 'react-navigation';
 import * as Permissions from 'expo-permissions';
@@ -21,8 +23,9 @@ import {BlueButton} from '../components/Button';
 import {Ionicons} from '@expo/vector-icons';
 import styles from '../config/styles';
 import colors from '../config/colors';
-import {getTickets} from '../requests';
+import {getTickets, submitTicket, getFormattedTimestamp} from '../requests';
 import Lottie from 'lottie-react-native';
+import MultiToggleSwitch from 'react-native-multi-toggle-switch';
 
 class CameraScreen extends React.Component {
   static navigationOptions = ({navigation}) => {
@@ -32,62 +35,72 @@ class CameraScreen extends React.Component {
     };
   };
 
+  // description deprecated: user has choice of button instead.
   state = {
     hasCameraPermission: null,
     type: Camera.Constants.Type.back,
     data: [],
     loading: false,
     image: null,
-    description: '',
-    charCountStyle: styles.subtitleText,
+    //description: '',
+    //charCountStyle: styles.subtitleWhiteText,
+    location: {},
+    lastUpdated: null,
   };
 
   async componentDidMount() {
     const {status} = await Permissions.askAsync(Permissions.CAMERA);
     this.setState({hasCameraPermission: status === 'granted'});
 
-    data = getTickets();
+    data = await getTickets();
+    timestamp = getFormattedTimestamp();
 
     this.setState({data: data});
-    //this.animation.play();
+    this.setState({lastUpdated: timestamp});
+  }
+  componentWillMount() {
+    this.keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      this._keyboardDidShow.bind(this)
+    );
+    this.keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      this._keyboardDidHide.bind(this)
+    );
   }
 
-  getCurrentLocation = () => {
-    navigator.geolocation.getCurrentPosition(
-      (location) => {
-        console.log('location found!');
-        console.log(location);
-        return location;
-      },
-      (error) => Alert.alert(error.message),
-      {enableHighAccuracy: true, timeout: 0, maximumAge: 1000}
-    );
-  };
+  componentWillUnmount() {
+    this.keyboardDidShowListener.remove();
+    this.keyboardDidHideListener.remove();
+  }
+
+  _keyboardDidShow() {
+    this.setState({
+      charCountStyle:
+        this.state.description.length < 100
+          ? styles.subtitleWhiteText
+          : styles.alertText,
+    });
+  }
+
+  _keyboardDidHide() {
+    this.setState({charCountStyle: styles.invisible});
+  }
 
   // take a photo, then navigate to photo screen for review
   takeAndLocatePicture = async () => {
-    const {navigation} = this.props;
-
     if (this.camera) {
-      console.log('TAKING PICTURE.');
-      const options = {quality: 0.5, base64: true};
+      const options = {quality: 1, base64: true};
       const imageData = await this.camera.takePictureAsync(options);
-      const locationData = await this.getCurrentLocation();
+      const loc = await this.getCurrentLocation();
 
       this.setState({image: imageData.uri});
-
-      console.log(imageData.uri);
-      console.log(this.state.image);
-      console.log(locationData);
-
-      console.log('would navigate here!');
-      // navigation.navigate('Photo', {
-      //   photoURI: imageData.uri,
-      // });
+      //setTimeout(() => this._input.focus(), 1000);
     }
   };
 
   deletePicture = async () => {
+    this.setState({description: ''});
     this.setState({image: null});
   };
 
@@ -143,6 +156,37 @@ class CameraScreen extends React.Component {
     this.animation.play();
   };
 
+  getCurrentLocation = async () => {
+    return navigator.geolocation.getCurrentPosition(
+      (location) => {
+        console.log('location found!');
+        console.log(location);
+        this.setState({location: location.coords});
+        return location.coords;
+      },
+      (error) => Alert.alert(error.message),
+      {enableHighAccuracy: true, timeout: 0, maximumAge: 1000}
+    );
+  };
+
+  handleSubmitTicket = (selectedServiceIndex) => {
+    // submitting ticket!
+    submitTicket(
+      this.state.image,
+      //this.state.description,
+      this.state.location,
+      selectedServiceIndex
+    )
+      .then((res) => {
+        console.log('success');
+      })
+      .catch((err) => console.log(err));
+
+    // clearing content
+    console.log('hello');
+    this.setState({image: null});
+  };
+
   render() {
     const {hasCameraPermission, image} = this.state;
     const limit = 100;
@@ -163,7 +207,9 @@ class CameraScreen extends React.Component {
           index={1}
         >
           <View style={this.viewStyle()}>
-            <Text style={{fontSize: 30, color: colors.REAL_GREY}}>
+            <Text
+              style={{fontSize: 30, color: colors.REAL_GREY, paddingBottom: 15}}
+            >
               Ticket Feed
             </Text>
             <FlatList
@@ -180,6 +226,11 @@ class CameraScreen extends React.Component {
               ListHeaderComponent={this.renderHeader}
               ListFooterComponent={this.renderFooter}
             />
+            <Text
+              style={{fontSize: 15, color: colors.REAL_GREY, paddingBottom: 15}}
+            >
+              Last Updated: {this.state.lastUpdated}
+            </Text>
           </View>
 
           <View style={{flex: 1}}>
@@ -187,63 +238,192 @@ class CameraScreen extends React.Component {
               // if image, show image :)
               // add a delete image button!
               // add a description field
-              <DismissKeyboardView
+              <View
                 style={{
                   flex: 1,
                   alignItems: 'stretch',
                   justifyContent: 'flex-start',
-                  padding: 20,
-                  marginTop: 50,
+                  marginTop: 0,
                 }}
               >
-                <FormTextInput
-                  multiline={true}
-                  numberOfLines={6}
-                  maxLength={130}
-                  placeholder='Describe what this looks like.'
-                  value={this.state.description}
-                  onChangeText={(description) => {
-                    this.setState({
-                      charCountStyle:
-                        description.length < limit
-                          ? styles.subtitleText
-                          : styles.alertText,
-                    });
-                    this.setState({description});
-                  }}
-                  style={{height: 100}}
-                />
-                <Text style={this.state.charCountStyle}>
-                  Characters Left: {this.state.description.length}/{limit}
-                  {'\n'}
-                </Text>
-                <Image style={styles.largeImage} source={{uri: image}} />
-                <BlueButton
+                <TouchableOpacity
                   onPress={() => {
-                    console.log('hello');
-                    this.setState({image: null});
+                    console.log('image pressed');
+                    //this._input.focus();
                   }}
-                  label='Submit'
-                  color={colors.BLACK}
-                />
+                  style={{width: '100%', height: '100%'}}
+                >
+                  <Image
+                    style={styles.largeImage}
+                    resizeMode={'cover'}
+                    source={{uri: image}}
+                  />
+                </TouchableOpacity>
+                {/*<View
+                  style={{
+                    position: 'absolute',
+                    top: 200,
+                    left: 100,
+                    backgroundColor: 'rgba(25,25,25,0.5)',
+                    width: 100,
+                    height: 50,
+                    flex: 1,
+                    justifyContent: 'center',
+                    paddingHorizontal: 2,
+                    alignItems: 'center',
+                    alignContent: 'center',
+                    flexDirection: 'row',
+                  }}
+                >
+                  <MultiToggleSwitch>
+                    <MultiToggleSwitch.Item
+                      onPress={() => {
+                        this.state.description = 'Feces';
+                        console.log('Facebook tapped!');
+                      }}
+                      primaryColor={colors.LIGHT_BLUE}
+                      secondaryColor={'#124E96'}
+                      style={{backgroundColor: colors.BLACK}}
+                    >
+                      <Text style={{fontWeight: 'bold', color: colors.BLACK}}>
+                        Feces
+                      </Text>
+                    </MultiToggleSwitch.Item>
+                    <MultiToggleSwitch.Item
+                      primaryColor={colors.LIGHT_BLUE}
+                      onPress={() => {
+                        this.state.description = 'Needle';
+                      }}
+                    >
+                      <Text style={{fontWeight: 'bold', color: colors.BLACK}}>
+                        Needle
+                      </Text>
+                    </MultiToggleSwitch.Item>
+                    <MultiToggleSwitch.Item
+                      primaryColor={colors.LIGHT_BLUE}
+                      onPress={() => {
+                        this.state.description = 'Graffiti';
+                      }}
+                    >
+                      <Text style={{fontWeight: 'bold', color: colors.BLACK}}>
+                        Graffiti
+                      </Text>
+                    </MultiToggleSwitch.Item>
+                    <MultiToggleSwitch.Item
+                      primaryColor={colors.LIGHT_BLUE}
+                      onPress={() => {
+                        this.state.description = 'Pothole';
+                      }}
+                    >
+                      <Text style={{fontWeight: 'bold', color: colors.BLACK}}>
+                        Pothole
+                      </Text>
+                    </MultiToggleSwitch.Item>
+                    </MultiToggleSwitch>*/}
+                {/*<View
+                  style={{
+                    position: 'absolute',
+                    marginTop: 200,
+                    paddingBottom: 15,
+                    flex: 1,
+                    width: '100%',
+                    height: 50,
+                  }}
+                ><TextInput
+                    ref={(c) => (this._input = c)}
+                    placeholder={'Describe what you see...'}
+                    onChangeText={(description) => {
+                      console.log('HELP ME');
+                      this.setState({
+                        charCountStyle:
+                          description.length < limit
+                            ? styles.subtitleWhiteText
+                            : styles.alertText,
+                      });
+                      this.setState({description: description});
+                    }}
+                    onSubmitEditing={(event) => {
+                      this._input.clear();
+                      this._input.focus();
+                      () => this.handleSubmitTicket(0)();
+                    }}
+                    style={{
+                      height: 60,
+                      borderColor: colors.SILVER,
+                      borderBottomWidth: 1,
+                      marginBottom: 20,
+                      backgroundColor: 'rgba(250,250,250,0.5)',
+                      fontSize: 20,
+                      paddingLeft: 15,
+                    }}
+                  />
+
+                  <Text style={this.state.charCountStyle}>
+                    Characters Left: {this.state.description.length}/{limit}
+                    {'\n'}
+                  </Text></View>
+                </View>*/}
+                <View
+                  style={{
+                    position: 'absolute',
+                    flex: 1,
+                    top: 150,
+                    flexDirection: 'row',
+                    alignContent: 'center',
+                    width: '100%',
+                    marginLeft: 5,
+                    marginRight: 5,
+                    right: 5,
+                  }}
+                >
+                  {/**Note: submit ticket id hardcoded and mapped to service code */}
+                  <TouchableOpacity
+                    onPress={() => this.handleSubmitTicket(0)}
+                    style={styles.layoverButton}
+                  >
+                    <Text style={styles.layoverButtonText}> Feces </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => this.handleSubmitTicket(1)}
+                    style={styles.layoverButton}
+                  >
+                    <Text style={styles.layoverButtonText}> Needle </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => this.handleSubmitTicket(2)}
+                    style={styles.layoverButton}
+                  >
+                    <Text style={styles.layoverButtonText}> Graffiti </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => this.handleSubmitTicket(3)}
+                    style={styles.layoverButton}
+                  >
+                    <Text style={styles.layoverButtonText}> Pothole </Text>
+                  </TouchableOpacity>
+                </View>
                 <View
                   style={{
                     flex: 1,
                     backgroundColor: 'transparent',
-                    flexDirection: 'row',
+                    flexDirection: 'row-reverse',
                   }}
                 >
                   <TouchableOpacity
                     style={styles.cameraScreenStyle}
                     onPress={this.deletePicture}
                   >
-                    <Ionicons name='md-close-circle' size={40} color='black' />
+                    <Ionicons
+                      name='md-close-circle-outline'
+                      size={40}
+                      color='white'
+                    />
                     <Text
                       style={{
                         fontSize: 25,
                         marginBottom: 30,
                         marginTop: 10,
-                        color: 'black',
+                        color: 'white',
                       }}
                     >
                       {' '}
@@ -251,7 +431,7 @@ class CameraScreen extends React.Component {
                     </Text>
                   </TouchableOpacity>
                 </View>
-              </DismissKeyboardView>
+              </View>
             )}
             {!image && (
               // if no image, render camera!
@@ -274,11 +454,7 @@ class CameraScreen extends React.Component {
                     style={styles.cameraScreenStyle}
                     onPress={this.takeAndLocatePicture}
                   >
-                    <Ionicons
-                      name='ios-arrow-dropup-circle'
-                      size={40}
-                      color='white'
-                    />
+                    <Ionicons name='md-camera' size={40} color='white' />
                     <Text
                       style={{
                         fontSize: 25,
@@ -306,6 +482,19 @@ class CameraScreen extends React.Component {
                 </View>
               </Camera>
             )}
+          </View>
+          <View style={this.viewStyle()}>
+            <Text
+              style={{
+                fontSize: 30,
+                color: colors.REAL_GREY,
+                padding: 30,
+                textAlign: 'center',
+              }}
+            >
+              Coming soon: Map with cleanliness score. Find your next home based
+              on reported data.
+            </Text>
           </View>
           <View style={this.viewStyle()}>
             <Text
