@@ -8,9 +8,10 @@ export default class ListTicket extends React.Component {
   render() {
     const {ticket, onPress} = this.props;
     //let favorited = animal.isFavorite || false;
+    const location = ticket.location || ticket.lat + ', ' + ticket.long;
     return (
       <ListItem
-        title={`${ticket.type}`}
+        title={`${ticket.request_type}`}
         subtitle={
           <View
             style={{
@@ -22,20 +23,20 @@ export default class ListTicket extends React.Component {
               },
             }}
           >
-            <Text style={styles.subtitleText}>Status: {ticket.status}</Text>
-            <Text style={styles.subtitleText}>Location: {ticket.location}</Text>
+            <Text style={styles.subtitleText}>
+              Status: {ticket.status || 'pending'}
+            </Text>
+            <Text style={styles.subtitleText}>Location: {location}</Text>
           </View>
         }
-        badge={{
-          value: `UPVOTES: ${ticket.upvotes}`,
-          textStyle: {color: 'white', fontSize: 12},
-        }}
+        // badge={{
+        //   value: `UPVOTES: ${ticket.upvotes || 0}`,
+        //   textStyle: {color: 'white', fontSize: 12},
+        // }}
         rightElement={
           <Image
             style={{width: 100, height: '100%'}}
-            source={{
-              uri: ticket.url,
-            }}
+            source={{uri: ticket.image_url}}
           />
         }
         onPress={() => onPress(ticket)}

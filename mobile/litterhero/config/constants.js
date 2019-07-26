@@ -1,3 +1,3 @@
 export default (constants = {
-  SERVERNAME: 'http://e24db8ef.ngrok.io',
+  SERVERNAME: 'http://18.224.151.150',
 });

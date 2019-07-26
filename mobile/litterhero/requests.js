@@ -2,46 +2,37 @@ import constants from './config/constants';
 import Storage from './lib/Storage';
 import serviceMap from './config/serviceMap';
 
-export const submitTicket = async (
-  image_uri,
-  location,
-  selected
-) => {
+export const submitTicket = async (image_uri, location, selected) => {
   // Upload the image using the fetch and FormData APIs
   let formData = new FormData();
   // Assume "photo" is the name of the form field the server expects
   let uriParts = image_uri.split('.');
   let fileType = uriParts[uriParts.length - 1];
 
-  // formData.append('photo', {
-  //   image_uri,
-  //   name: `photo.${fileType}`,
-  //   type: `image/${fileType}`,
-  // });
-  formData.append('image_url', 'www.google.com');
+  formData.append('photo', {
+    uri: image_uri,
+    name: `photo.${fileType}`,
+    type: `image/${fileType}`,
+  });
 
   //loc = await getCurrentLocation();
   formData.append('lat', String(location['latitude']));
   formData.append('long', String(location['longitude']));
 
   // items stored on device
-  email = await Storage.getItem('email');
+  phone = await Storage.getItem('phone');
   name = await Storage.getItem('name');
 
-  formData.append('email', email);
+  formData.append('phone', phone);
   formData.append('name', name);
 
   // hardcoded for now
-  // TOOD: add selector for user
   formData.append('service_code', serviceMap[selected]['service_code']);
-  formData.append('comment', serviceMap[selected]['description']);
+  formData.append('description', serviceMap[selected]['description']);
 
-  console.log(formData);
-  console.log(email);
-  console.log(name);
-  console.log('POST ALL THIS CONTENT TO BACKEND');
+  const url = constants.SERVERNAME + '/tickets';
   // perform fetch request
-  return await fetch(constants.SERVERNAME, {
+  return await fetch(url, {
     method: 'POST',
     body: formData,
     header: {
@@ -54,13 +45,16 @@ export const submitTicket = async (
     })
     .catch((err) => {
       console.log(err);
+      return null;
       //throw err; // Swallow for now
     });
 };
 
 export const getTickets = async () => {
   const url = constants.SERVERNAME + '/tickets';
-  return await fetch(url)
+  let tickets = await fetch(url);
+  tickets = await tickets.json();
+  return tickets;
   /*
   return [
     {
@@ -96,44 +90,30 @@ export const getTickets = async () => {
   ];*/
 };
 
-export const loginUser = (username, number) => {
+export const loginUser = async (username, number) => {
   const url = constants.SERVERNAME + '/users';
 
   return await fetch(url, {
     method: 'POST',
     headers: {
-      'Accept': 'application/json',
+      Accept: 'application/json',
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       user: {
         username: username,
         number: number,
-      }
-   })
+      },
+    }),
   })
     .then((res) => {
-      console.log(res);
-      console.log('---------------------here')
-      return res;
+      return res.json();
     })
     .catch((err) => {
       console.log(err);
-      return err;
-      //throw err; // Swallow for now
+      return null;
     });
-}
-
-/*
-long:
-lat:
-request_type: string
-service_code: int
-
-// store on device, send with every request
-email:
-first:
-*/
+};
 
 export const getFormattedTimestamp = () => {
   let date = new Date().getDate(); //Current Date
@@ -142,5 +122,5 @@ export const getFormattedTimestamp = () => {
   let hours = new Date().getHours(); //Current Hours
   let min = new Date().getMinutes(); //Current Minutes
   let sec = new Date().getSeconds(); //Current Seconds
-  return date + '/' + month + '/' + year + ' ' + hours + ':' + min + ':' + sec;
+  return month + '/' + date + '/' + year + ' ' + hours + ':' + min + ':' + sec;
 };

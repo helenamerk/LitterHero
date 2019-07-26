@@ -27,6 +27,8 @@ import {getTickets, submitTicket, getFormattedTimestamp} from '../requests';
 import Lottie from 'lottie-react-native';
 import MultiToggleSwitch from 'react-native-multi-toggle-switch';
 
+import SubmissionPending from '../components/SubmissionPending';
+
 class CameraScreen extends React.Component {
   static navigationOptions = ({navigation}) => {
     return {
@@ -41,6 +43,7 @@ class CameraScreen extends React.Component {
     type: Camera.Constants.Type.back,
     data: [],
     loading: false,
+    error: false,
     image: null,
     //description: '',
     //charCountStyle: styles.subtitleWhiteText,
@@ -49,14 +52,18 @@ class CameraScreen extends React.Component {
   };
 
   async componentDidMount() {
+    this.setState({loading: true});
     const {status} = await Permissions.askAsync(Permissions.CAMERA);
     this.setState({hasCameraPermission: status === 'granted'});
 
     data = await getTickets();
+    //console.log('DATA DONE');
+    //console.log(data);
     timestamp = getFormattedTimestamp();
 
     this.setState({data: data});
     this.setState({lastUpdated: timestamp});
+    this.setState({loading: false});
   }
   componentWillMount() {
     this.keyboardDidShowListener = Keyboard.addListener(
@@ -114,7 +121,7 @@ class CameraScreen extends React.Component {
     };
   }
 
-  enderHeader = () => {
+  renderHeader = () => {
     return null;
   };
 
@@ -136,19 +143,19 @@ class CameraScreen extends React.Component {
 
   upvoteTicket = (i) => {
     data = this.state.data;
-    console.log(data);
-    console.log(data[0]['upvotes']);
-    console.log(i);
+    //console.log(data);
+    //console.log(data[0]['upvotes']);
+    //console.log(i);
     data[i]['upvotes'] = data[i]['upvotes'] + 1;
     this.setState({data: data});
   };
 
   onTicketPress(i) {
-    console.log('i');
-    console.log(i);
+    //console.log('i');
+    //console.log(i);
     this.upvoteTicket(i);
 
-    console.log('ticket pressed');
+    //console.log('ticket pressed');
   }
 
   resetAnimation = () => {
@@ -159,8 +166,8 @@ class CameraScreen extends React.Component {
   getCurrentLocation = async () => {
     return navigator.geolocation.getCurrentPosition(
       (location) => {
-        console.log('location found!');
-        console.log(location);
+        //console.log('location found!');
+        //console.log(location);
         this.setState({location: location.coords});
         return location.coords;
       },
@@ -170,6 +177,7 @@ class CameraScreen extends React.Component {
   };
 
   handleSubmitTicket = (selectedServiceIndex) => {
+    this.setState({loading: true});
     // submitting ticket!
     submitTicket(
       this.state.image,
@@ -178,12 +186,23 @@ class CameraScreen extends React.Component {
       selectedServiceIndex
     )
       .then((res) => {
-        console.log('success');
+        //console.log(JSON.stringify(res));
+        //console.log(res.status);
+        if (res.status == 200) {
+          //console.log('post success');
+          this.setState({loading: false});
+        } else {
+          //console.log('non 200 status');
+          this.setState({loading: false});
+        }
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        this.setState({error: true});
+        //console.log(err);
+      });
 
     // clearing content
-    console.log('hello');
+    //console.log('hello');
     this.setState({image: null});
   };
 
@@ -191,14 +210,15 @@ class CameraScreen extends React.Component {
     const {hasCameraPermission, image} = this.state;
     const limit = 100;
 
-    console.log('image');
-    console.log(image);
+    //console.log('image');
+    //console.log(image);
 
     if (hasCameraPermission === null) {
       return <View />;
     } else if (hasCameraPermission === false) {
       return <Text>No access to camera</Text>;
     } else {
+      //console.log('here...');
       return (
         <Swiper
           horizontal={true}
@@ -208,32 +228,43 @@ class CameraScreen extends React.Component {
         >
           <View style={this.viewStyle()}>
             <Text
-              style={{fontSize: 30, color: colors.REAL_GREY, paddingBottom: 15}}
+              style={{
+                fontSize: 30,
+                color: colors.REAL_GREY,
+                paddingBottom: 15,
+              }}
             >
               Ticket Feed
             </Text>
-            <FlatList
-              style={{width: '100%'}}
-              data={this.state.data}
-              renderItem={({item, index}) => (
-                <ListTicket
-                  ticket={item}
-                  onPress={() => this.onTicketPress(index)}
-                />
-              )}
-              keyExtractor={(item) => item.id}
-              ItemSeparatorComponent={ListItemDivider}
-              ListHeaderComponent={this.renderHeader}
-              ListFooterComponent={this.renderFooter}
-            />
+            {this.state.data.length > 0 && (
+              <FlatList
+                style={{width: '100%'}}
+                data={this.state.data}
+                renderItem={({item, index}) => (
+                  <ListTicket
+                    ticket={item}
+                    onPress={() => this.onTicketPress(index)}
+                  />
+                )}
+                keyExtractor={(item) => item.id.toString()}
+                ItemSeparatorComponent={ListItemDivider}
+                ListHeaderComponent={this.renderHeader}
+                ListFooterComponent={this.renderFooter}
+              />
+            )}
             <Text
-              style={{fontSize: 15, color: colors.REAL_GREY, paddingBottom: 15}}
+              style={{
+                fontSize: 15,
+                color: colors.REAL_GREY,
+                paddingBottom: 15,
+              }}
             >
               Last Updated: {this.state.lastUpdated}
             </Text>
           </View>
-
           <View style={{flex: 1}}>
+            {this.state.loading && <SubmissionPending label='Loading...' />}
+            {this.state.error && <SubmissionPending label='Error...' />}
             {image && (
               // if image, show image :)
               // add a delete image button!
@@ -248,7 +279,7 @@ class CameraScreen extends React.Component {
               >
                 <TouchableOpacity
                   onPress={() => {
-                    console.log('image pressed');
+                    //console.log('image pressed');
                     //this._input.focus();
                   }}
                   style={{width: '100%', height: '100%'}}
@@ -279,7 +310,7 @@ class CameraScreen extends React.Component {
                     <MultiToggleSwitch.Item
                       onPress={() => {
                         this.state.description = 'Feces';
-                        console.log('Facebook tapped!');
+                        //console.log('Facebook tapped!');
                       }}
                       primaryColor={colors.LIGHT_BLUE}
                       secondaryColor={'#124E96'}
@@ -333,7 +364,7 @@ class CameraScreen extends React.Component {
                     ref={(c) => (this._input = c)}
                     placeholder={'Describe what you see...'}
                     onChangeText={(description) => {
-                      console.log('HELP ME');
+                      //console.log('HELP ME');
                       this.setState({
                         charCountStyle:
                           description.length < limit

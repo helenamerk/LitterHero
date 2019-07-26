@@ -23,7 +23,7 @@ const MainStack = createStackNavigator(
     initialRouteName: 'LoadingScreen',
     defaultNavigationOptions: {
       headerStyle: {
-        backgroundColor: colors.BLACK,
+        backgroundColor: colors.SEE_THROUGH,
       },
       headerTintColor: '#fff',
       headerTitleStyle: {
