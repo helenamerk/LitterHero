@@ -263,8 +263,6 @@ class CameraScreen extends React.Component {
             </Text>
           </View>
           <View style={{flex: 1}}>
-            {this.state.loading && <SubmissionPending label='Loading...' />}
-            {this.state.error && <SubmissionPending label='Error...' />}
             {image && (
               // if image, show image :)
               // add a delete image button!
@@ -517,6 +515,8 @@ class CameraScreen extends React.Component {
                 </View>
               </Camera>
             )}
+            {this.state.loading && <SubmissionPending label='Loading...' />}
+            {this.state.error && <SubmissionPending label='Error...' />}
           </View>
           <View style={this.viewStyle()}>
             <Text

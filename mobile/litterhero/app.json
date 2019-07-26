@@ -5,7 +5,7 @@
     "privacy": "public",
     "sdkVersion": "33.0.0",
     "platforms": ["ios", "android", "web"],
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -20,7 +20,10 @@
     "ios": {
       "supportsTablet": false,
       "infoPlist": {
-        "NSCameraUsageDescription": "This app uses the camera to take pictures of litter."
+        "NSCameraUsageDescription": "This app uses the camera to take pictures of litter.",
+        "NSLocationWhenInUseUsageDescription": "This app uses location to inform your city where to dispatch officials to.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app uses location to inform your city where to dispatch officials to.",
+        "NSLocationAlwaysUsageDescription": "This app uses location to inform your city where to dispatch officials to."
       },
       "bundleIdentifier": "com.litterhero"
     },
