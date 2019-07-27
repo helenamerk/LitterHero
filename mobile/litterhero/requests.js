@@ -58,12 +58,14 @@ export const submitTicket = async (image_uri, location, selected) => {
 export const getTickets = async (user_id) => {
   let slug = '';
   if (user_id) {
-    slug = '?user_id' + user_id;
+    slug = '?user_id=' + user_id;
   }
   const url = constants.SERVERNAME + '/tickets' + slug;
+
+  console.log(url);
+
   let tickets = await fetch(url);
   tickets = await tickets.json();
-  console.log(tickets);
   return tickets;
 };
 

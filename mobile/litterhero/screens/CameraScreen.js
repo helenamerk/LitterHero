@@ -46,7 +46,7 @@ class CameraScreen extends React.Component {
     location: {},
     lastUpdated: null,
     user_id: '',
-    toggleAll: false, // defaults to showing only user's posts
+    toggleAll: true, // defaults to showing only user's posts
   };
 
   updateData = async () => {
@@ -64,13 +64,14 @@ class CameraScreen extends React.Component {
   };
 
   async componentDidMount() {
+    console.log(await Storage.getItem('user_id'));
     const {status} = await Permissions.askAsync(Permissions.CAMERA);
     this.setState({hasCameraPermission: status === 'granted'});
-    this.updateData().then((res) => {
-      console.log(res);
-    });
     const user_id = await Storage.getItem('user_id');
     this.setState({user_id: user_id});
+
+    console.log(this.state.user_id);
+    this.updateData();
   }
   componentWillMount() {
     this.keyboardDidShowListener = Keyboard.addListener(
@@ -238,7 +239,7 @@ class CameraScreen extends React.Component {
             <View style={{flexDirection: 'row', marginBottom: 15}}>
               <Button
                 raised
-                title={this.state.toggleAll ? 'Your Tickets' : 'All Tickets'}
+                title={this.state.toggleAll ? 'All Tickets' : 'Your Tickets'}
                 type='outline'
                 onPress={() => {
                   this.setState({toggleAll: !this.state.toggleAll});
