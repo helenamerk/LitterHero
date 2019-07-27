@@ -24,7 +24,7 @@ class LoginScreen extends React.Component {
     name: '',
   };
 
-  handlephoneChange = (phone) => {
+  handlePhoneChange = (phone) => {
     this.setState({phone: phone});
   };
 
@@ -33,9 +33,8 @@ class LoginScreen extends React.Component {
   };
 
   handleLoginPress = async () => {
-    await Storage.setItem('phone', this.state.phone);
-    await Storage.setItem('name', this.state.name);
-    await loginUser(this.state.name, this.state.phone);
+    const res = await loginUser(this.state.name, this.state.phone);
+    await Storage.setItem('user_id', res.id);
     this.props.navigation.replace('CameraScreen');
   };
 
@@ -74,9 +73,9 @@ class LoginScreen extends React.Component {
             />
             <FormTextInput
               value={this.state.phone}
-              onChangeText={this.handlephoneChange}
+              onChangeText={this.handlePhoneChange}
               placeholder='Phone'
-              keyboardType='numeric'
+              keyboardType='phone-pad'
             />
             <BlueButton label='Start' onPress={this.handleLoginPress} />
           </View>

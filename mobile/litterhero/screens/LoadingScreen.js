@@ -22,7 +22,7 @@ class LoadingScreen extends React.Component {
   componentDidMount() {
     //Storage.removeItem('phone'); // Uncomment for re-login per use case.
     this.animation.play();
-    Storage.getItem('phone').then((value) => {
+    Storage.getItem('user_id').then((value) => {
       if (value === null) {
         this.props.navigation.replace('LoginScreen');
       } else {

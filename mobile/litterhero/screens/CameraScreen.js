@@ -15,16 +15,14 @@ import Swiper from 'react-native-swiper';
 
 import ListItemDivider from '../components/ListItemDivider';
 import ListTicket from '../components/ListTicket';
-import FormTextInput from '../components/FormTextInput';
-import DismissKeyboardView from '../components/DismissKeyboardView';
-import {BlueButton} from '../components/Button';
+import Storage from '../lib/Storage';
 
-import {Ionicons} from '@expo/vector-icons';
 import styles from '../config/styles';
 import colors from '../config/colors';
 import {getTickets, submitTicket, getFormattedTimestamp} from '../requests';
-import Lottie from 'lottie-react-native';
+
 import {Button} from 'react-native-elements';
+import {Ionicons} from '@expo/vector-icons';
 
 import SubmissionPending from '../components/SubmissionPending';
 
@@ -47,11 +45,18 @@ class CameraScreen extends React.Component {
     //charCountStyle: styles.subtitleWhiteText,
     location: {},
     lastUpdated: null,
+    user_id: '',
+    toggleAll: false, // defaults to showing only user's posts
   };
 
   updateData = async () => {
+    let param = null;
+    if (this.state.toggleAll == false) {
+      param = this.state.user_id;
+    }
+
     this.setState({infoText: 'Updating Tickets'});
-    data = await getTickets();
+    data = await getTickets(param);
     timestamp = getFormattedTimestamp();
     this.setState({data: data});
     this.setState({lastUpdated: timestamp});
@@ -64,6 +69,8 @@ class CameraScreen extends React.Component {
     this.updateData().then((res) => {
       console.log(res);
     });
+    const user_id = await Storage.getItem('user_id');
+    this.setState({user_id: user_id});
   }
   componentWillMount() {
     this.keyboardDidShowListener = Keyboard.addListener(
@@ -118,6 +125,8 @@ class CameraScreen extends React.Component {
       justifyContent: 'center',
       alignItems: 'center',
       paddingTop: 50,
+      alignContent: 'space-evenly',
+      flexDirection: 'column',
     };
   }
 
@@ -183,16 +192,12 @@ class CameraScreen extends React.Component {
       selectedServiceIndex
     )
       .then((res) => {
-        //console.log(JSON.stringify(res));
-        //console.log(res.status);
         if (res.status == 200) {
-          //console.log('post success');
           this.setState({infoText: 'Successful Post'});
-          this.updateData().then((res) => {
-            console.log(res);
-          });
+          //
+
+          this.updateData();
         } else {
-          //console.log('non 200 status');
           this.setState({infoText: 'Error Submitting'});
         }
       })
@@ -230,15 +235,27 @@ class CameraScreen extends React.Component {
           index={1}
         >
           <View style={this.viewStyle()}>
-            <Text
-              style={{
-                fontSize: 30,
-                color: colors.REAL_GREY,
-                paddingBottom: 15,
-              }}
-            >
-              Ticket Feed
-            </Text>
+            <View style={{flexDirection: 'row', marginBottom: 15}}>
+              <Button
+                raised
+                title={this.state.toggleAll ? 'Your Tickets' : 'All Tickets'}
+                type='outline'
+                onPress={() => {
+                  this.setState({toggleAll: !this.state.toggleAll});
+                  this.updateData();
+                }}
+                style={{padding: 0, margin: 0}}
+                containerStyle={{marginRight: 10}}
+              />
+              <Text
+                style={{
+                  fontSize: 30,
+                  color: colors.REAL_GREY,
+                }}
+              >
+                Ticket Feed
+              </Text>
+            </View>
             {this.state.data.length > 0 && (
               <FlatList
                 style={{width: '100%'}}
@@ -292,110 +309,6 @@ class CameraScreen extends React.Component {
                     source={{uri: image}}
                   />
                 </TouchableOpacity>
-                {/*<View
-                  style={{
-                    position: 'absolute',
-                    top: 200,
-                    left: 100,
-                    backgroundColor: 'rgba(25,25,25,0.5)',
-                    width: 100,
-                    height: 50,
-                    flex: 1,
-                    justifyContent: 'center',
-                    paddingHorizontal: 2,
-                    alignItems: 'center',
-                    alignContent: 'center',
-                    flexDirection: 'row',
-                  }}
-                >
-                  <MultiToggleSwitch>
-                    <MultiToggleSwitch.Item
-                      onPress={() => {
-                        this.state.description = 'Feces';
-                        //console.log('Facebook tapped!');
-                      }}
-                      primaryColor={colors.LIGHT_BLUE}
-                      secondaryColor={'#124E96'}
-                      style={{backgroundColor: colors.BLACK}}
-                    >
-                      <Text style={{fontWeight: 'bold', color: colors.BLACK}}>
-                        Feces
-                      </Text>
-                    </MultiToggleSwitch.Item>
-                    <MultiToggleSwitch.Item
-                      primaryColor={colors.LIGHT_BLUE}
-                      onPress={() => {
-                        this.state.description = 'Needle';
-                      }}
-                    >
-                      <Text style={{fontWeight: 'bold', color: colors.BLACK}}>
-                        Needle
-                      </Text>
-                    </MultiToggleSwitch.Item>
-                    <MultiToggleSwitch.Item
-                      primaryColor={colors.LIGHT_BLUE}
-                      onPress={() => {
-                        this.state.description = 'Graffiti';
-                      }}
-                    >
-                      <Text style={{fontWeight: 'bold', color: colors.BLACK}}>
-                        Graffiti
-                      </Text>
-                    </MultiToggleSwitch.Item>
-                    <MultiToggleSwitch.Item
-                      primaryColor={colors.LIGHT_BLUE}
-                      onPress={() => {
-                        this.state.description = 'Pothole';
-                      }}
-                    >
-                      <Text style={{fontWeight: 'bold', color: colors.BLACK}}>
-                        Pothole
-                      </Text>
-                    </MultiToggleSwitch.Item>
-                    </MultiToggleSwitch>*/}
-                {/*<View
-                  style={{
-                    position: 'absolute',
-                    marginTop: 200,
-                    paddingBottom: 15,
-                    flex: 1,
-                    width: '100%',
-                    height: 50,
-                  }}
-                ><TextInput
-                    ref={(c) => (this._input = c)}
-                    placeholder={'Describe what you see...'}
-                    onChangeText={(description) => {
-                      //console.log('HELP ME');
-                      this.setState({
-                        charCountStyle:
-                          description.length < limit
-                            ? styles.subtitleWhiteText
-                            : styles.alertText,
-                      });
-                      this.setState({description: description});
-                    }}
-                    onSubmitEditing={(event) => {
-                      this._input.clear();
-                      this._input.focus();
-                      () => this.handleSubmitTicket(0)();
-                    }}
-                    style={{
-                      height: 60,
-                      borderColor: colors.SILVER,
-                      borderBottomWidth: 1,
-                      marginBottom: 20,
-                      backgroundColor: 'rgba(250,250,250,0.5)',
-                      fontSize: 20,
-                      paddingLeft: 15,
-                    }}
-                  />
-
-                  <Text style={this.state.charCountStyle}>
-                    Characters Left: {this.state.description.length}/{limit}
-                    {'\n'}
-                  </Text></View>
-                </View>*/}
                 <View
                   style={{
                     position: 'absolute',
@@ -472,7 +385,6 @@ class CameraScreen extends React.Component {
             )}
             {!image && (
               // if no image, render camera!
-
               <Camera
                 style={{flex: 1}}
                 type={this.state.type}

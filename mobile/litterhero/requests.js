@@ -20,11 +20,13 @@ export const submitTicket = async (image_uri, location, selected) => {
   formData.append('long', String(location['longitude']));
 
   // items stored on device
-  phone = await Storage.getItem('phone');
-  name = await Storage.getItem('name');
+  //phone = await Storage.getItem('phone');
+  //name = await Storage.getItem('name');
+  user_id = await Storage.getItem('user_id');
 
-  formData.append('phone', phone);
-  formData.append('name', name);
+  //formData.append('phone', phone);
+  //formData.append('name', name);
+  formData.append('user_id', user_id);
 
   // hardcoded for now
   formData.append('service_code', serviceMap[selected]['service_code']);
@@ -33,27 +35,32 @@ export const submitTicket = async (image_uri, location, selected) => {
 
   const url = constants.SERVERNAME + '/tickets';
   // perform fetch request
-  return await fetch(url, {
+  return fetch(url, {
     method: 'POST',
     body: formData,
     header: {
       'content-type': 'multipart/form-data',
     },
-  })
-    .then((res) => {
-      console.log(res.json());
-      return res;
-    })
-    .catch((err) => {
-      console.log(err);
+  });
+  // .then((res) => {
+  //   console.log(res.json());
+  //   return res;
+  // })
+  // .catch((err) => {
+  //   console.log(err);
 
-      return err;
-      //throw err; // Swallow for now
-    });
+  //   return err;
+  //   //throw err; // Swallow for now
+  // });
+  //const fin = await res.json();
 };
 
-export const getTickets = async () => {
-  const url = constants.SERVERNAME + '/tickets';
+export const getTickets = async (user_id) => {
+  let slug = '';
+  if (user_id) {
+    slug = '?user_id' + user_id;
+  }
+  const url = constants.SERVERNAME + '/tickets' + slug;
   let tickets = await fetch(url);
   tickets = await tickets.json();
   console.log(tickets);
@@ -63,7 +70,7 @@ export const getTickets = async () => {
 export const loginUser = async (username, number) => {
   const url = constants.SERVERNAME + '/users';
 
-  return await fetch(url, {
+  const res = await fetch(url, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -75,22 +82,18 @@ export const loginUser = async (username, number) => {
         number: number,
       },
     }),
-  })
-    .then((res) => {
-      return res.json();
-    })
-    .catch((err) => {
-      console.log(err);
-      return null;
-    });
+  });
+
+  const fin = await res.json();
+  return fin;
 };
 
 export const getFormattedTimestamp = () => {
-  let date = new Date().getDate(); //Current Date
-  let month = new Date().getMonth() + 1; //Current Month
-  let year = new Date().getFullYear(); //Current Year
-  let hours = new Date().getHours(); //Current Hours
-  let min = new Date().getMinutes(); //Current Minutes
-  let sec = new Date().getSeconds(); //Current Seconds
+  let date = new Date().getDate();
+  let month = new Date().getMonth() + 1;
+  let year = new Date().getFullYear();
+  let hours = new Date().getHours();
+  let min = new Date().getMinutes();
+  let sec = new Date().getSeconds();
   return month + '/' + date + '/' + year + ' ' + hours + ':' + min + ':' + sec;
 };
