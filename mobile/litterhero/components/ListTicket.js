@@ -11,7 +11,7 @@ export default class ListTicket extends React.Component {
     const location = ticket.location || ticket.lat + ', ' + ticket.long;
     return (
       <ListItem
-        title={`${ticket.request_type}`}
+        title={`${ticket.description}`}
         subtitle={
           <View
             style={{

@@ -28,6 +28,7 @@ export const submitTicket = async (image_uri, location, selected) => {
 
   // hardcoded for now
   formData.append('service_code', serviceMap[selected]['service_code']);
+  formData.append('service_name', serviceMap[selected]['service_name']);
   formData.append('description', serviceMap[selected]['description']);
 
   const url = constants.SERVERNAME + '/tickets';
@@ -40,12 +41,13 @@ export const submitTicket = async (image_uri, location, selected) => {
     },
   })
     .then((res) => {
-      console.log(res);
+      console.log(res.json());
       return res;
     })
     .catch((err) => {
       console.log(err);
-      return null;
+
+      return err;
       //throw err; // Swallow for now
     });
 };
@@ -54,40 +56,8 @@ export const getTickets = async () => {
   const url = constants.SERVERNAME + '/tickets';
   let tickets = await fetch(url);
   tickets = await tickets.json();
+  console.log(tickets);
   return tickets;
-  /*
-  return [
-    {
-      id: '123',
-      type: 'Human Feces',
-      url:
-        'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/socialmedia/apple/198/pile-of-poo_1f4a9.png',
-      status: 'Unclaimed',
-      description: 'User entered text',
-      location: '5th & Market',
-      upvotes: 5,
-    },
-    {
-      id: '132',
-      type: 'Pothole',
-      url:
-        'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/socialmedia/apple/198/pile-of-poo_1f4a9.png',
-      status: 'Unclaimed',
-      description: 'User entered text',
-      location: '1088 11th St.',
-      upvotes: 1,
-    },
-    {
-      id: '133',
-      type: 'poop',
-      url:
-        'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/socialmedia/apple/198/pile-of-poo_1f4a9.png',
-      status: 'Unclaimed',
-      description: 'User entered text',
-      location: '5th & Market, SF',
-      upvotes: 1,
-    },
-  ];*/
 };
 
 export const loginUser = async (username, number) => {

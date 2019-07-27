@@ -19,6 +19,11 @@ const serviceMap = [
     service_name: 'Graffiti',
     description: 'Graffiti found as indicated in picture.',
   },
+  {
+    service_code: '518d5892601827e3880000c5',
+    service_name: 'Trash',
+    description: 'Trash found as indicated in picture.',
+  },
 ];
 
 export default serviceMap;

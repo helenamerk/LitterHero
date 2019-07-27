@@ -1,24 +1,26 @@
 import * as React from 'react';
 import {Text, View} from 'react-native';
 import styles from '../config/styles';
+import colors from '../config/colors';
 
 export default class SubmissionPending extends React.Component {
   render() {
-    const {label, onPress} = this.props;
+    const {label} = this.props;
+    console.log(label);
     return (
       <View
         style={{
           flex: 1,
-          backgroundColor: 'rgb(25,25,25,0.5)',
+          backgroundColor: 'rgba(200,200,200,0.8)',
           position: 'absolute',
           width: '100%',
-          height: 100,
-          alignContent: 'center',
+          height: 60,
+          alignContent: 'space-around',
           top: 0,
+          justifyContent: 'space-between',
         }}
-        onPress={onPress}
       >
-        <Text style={styles.subtitleText}>{label}</Text>
+        <Text style={styles.pendingText}>{label}</Text>
       </View>
     );
   }

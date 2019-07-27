@@ -24,7 +24,6 @@ import styles from '../config/styles';
 import colors from '../config/colors';
 import {getTickets, submitTicket, getFormattedTimestamp} from '../requests';
 import Lottie from 'lottie-react-native';
-import MultiToggleSwitch from 'react-native-multi-toggle-switch';
 import {Button} from 'react-native-elements';
 
 import SubmissionPending from '../components/SubmissionPending';
@@ -42,8 +41,7 @@ class CameraScreen extends React.Component {
     hasCameraPermission: null,
     type: Camera.Constants.Type.back,
     data: [],
-    loading: false,
-    error: false,
+    infoText: '',
     image: null,
     //description: '',
     //charCountStyle: styles.subtitleWhiteText,
@@ -51,19 +49,21 @@ class CameraScreen extends React.Component {
     lastUpdated: null,
   };
 
-  async componentDidMount() {
-    this.setState({loading: true});
-    const {status} = await Permissions.askAsync(Permissions.CAMERA);
-    this.setState({hasCameraPermission: status === 'granted'});
-
+  updateData = async () => {
+    this.setState({infoText: 'Updating Tickets'});
     data = await getTickets();
-    //console.log('DATA DONE');
-    //console.log(data);
     timestamp = getFormattedTimestamp();
-
     this.setState({data: data});
     this.setState({lastUpdated: timestamp});
-    this.setState({loading: false});
+    this.setState({infoText: ''});
+  };
+
+  async componentDidMount() {
+    const {status} = await Permissions.askAsync(Permissions.CAMERA);
+    this.setState({hasCameraPermission: status === 'granted'});
+    this.updateData().then((res) => {
+      console.log(res);
+    });
   }
   componentWillMount() {
     this.keyboardDidShowListener = Keyboard.addListener(
@@ -126,7 +126,7 @@ class CameraScreen extends React.Component {
   };
 
   renderFooter = () => {
-    if (!this.state.loading) return null;
+    if (this.state.infoText == '') return null;
 
     return (
       <View
@@ -143,9 +143,6 @@ class CameraScreen extends React.Component {
 
   upvoteTicket = (i) => {
     data = this.state.data;
-    //console.log(data);
-    //console.log(data[0]['upvotes']);
-    //console.log(i);
     data[i]['upvotes'] = data[i]['upvotes'] + 1;
     this.setState({data: data});
   };
@@ -177,7 +174,7 @@ class CameraScreen extends React.Component {
   };
 
   handleSubmitTicket = (selectedServiceIndex) => {
-    this.setState({loading: true});
+    this.setState({infoText: 'Submitting...'});
     // submitting ticket!
     submitTicket(
       this.state.image,
@@ -190,39 +187,41 @@ class CameraScreen extends React.Component {
         //console.log(res.status);
         if (res.status == 200) {
           //console.log('post success');
-          this.setState({loading: false});
+          this.setState({infoText: 'Successful Post'});
+          this.updateData().then((res) => {
+            console.log(res);
+          });
         } else {
           //console.log('non 200 status');
-          this.setState({loading: false});
+          this.setState({infoText: 'Error Submitting'});
         }
       })
       .catch((err) => {
-        this.setState({error: true});
+        if (err.status == 406) {
+          this.setState({
+            infoText: 'Sorry! Currently only serving San Francisco',
+          });
+        }
+
         //console.log(err);
       });
 
     // clearing content
     //console.log('hello');
     this.setState({image: null});
-
-    getTickets().then((res) => {
-      this.setState({data: res});
-    });
   };
 
   render() {
     const {hasCameraPermission, image} = this.state;
     const limit = 100;
 
-    //console.log('image');
-    //console.log(image);
-
     if (hasCameraPermission === null) {
       return <View />;
     } else if (hasCameraPermission === false) {
       return <Text>No access to camera</Text>;
     } else {
-      //console.log('here...');
+      let notify = !(this.state.infoText === '');
+
       return (
         <Swiper
           horizontal={true}
@@ -261,6 +260,7 @@ class CameraScreen extends React.Component {
                 fontSize: 15,
                 color: colors.REAL_GREY,
                 paddingBottom: 15,
+                paddingTop: 15,
               }}
             >
               Last Updated: {this.state.lastUpdated}
@@ -432,12 +432,12 @@ class CameraScreen extends React.Component {
                     type='outline'
                     onPress={() => this.handleSubmitTicket(3)}
                   />
-                  {/*<TouchableOpacity
-                    onPress={() => this.handleSubmitTicket(0)}
-                    style={styles.layoverButton}
-                  >
-                    <Text style={styles.layoverButtonText}> Feces </Text>
-                  </TouchableOpacity>*/}
+                  <Button
+                    raised
+                    title='Trash'
+                    type='outline'
+                    onPress={() => this.handleSubmitTicket(4)}
+                  />
                 </View>
                 <View
                   style={{
@@ -519,20 +519,19 @@ class CameraScreen extends React.Component {
                 </View>
               </Camera>
             )}
-            {this.state.loading && <SubmissionPending label='Loading...' />}
-            {this.state.error && <SubmissionPending label='Error...' />}
+            {notify && <SubmissionPending label={this.state.infoText} />}
           </View>
           <View style={this.viewStyle()}>
             <Text
               style={{
-                fontSize: 30,
+                fontSize: 25,
                 color: colors.REAL_GREY,
                 padding: 30,
-                textAlign: 'center',
+                textAlign: 'left',
               }}
             >
-              Coming soon: Map with cleanliness score. Find your next home based
-              on reported data.
+              Coming soon:{'\n\n'}Map with cleanliness score. Find your next
+              home based on reported data.
             </Text>
           </View>
           <View style={this.viewStyle()}>

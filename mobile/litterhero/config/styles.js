@@ -93,6 +93,14 @@ const styles = StyleSheet.create({
     paddingLeft: 15,
     color: colors.TORCH_RED,
   },
+  pendingText: {
+    paddingLeft: 20,
+    padding: 25,
+    color: colors.BLACK,
+    flex: 1,
+    fontSize: 15,
+    fontStyle: 'italic',
+  },
   buttonStyleContainer: {
     width: '100%',
     alignItems: 'center',
