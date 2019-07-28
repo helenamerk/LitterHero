@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     backgroundColor: 'rgba(25,25,25,0.5)',
     bottom: 0,
-    height: 200,
+    height: 100,
   },
   form: {
     flex: 1,
@@ -73,7 +73,6 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   subtitleText: {
-    paddingLeft: 15,
     color: colors.REAL_GREY,
   },
   subtitleWhiteText: {
@@ -96,6 +95,7 @@ const styles = StyleSheet.create({
   pendingText: {
     paddingLeft: 20,
     padding: 25,
+    paddingTop: 20,
     color: colors.BLACK,
     flex: 1,
     fontSize: 15,

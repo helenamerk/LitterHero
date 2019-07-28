@@ -11,10 +11,10 @@ export default class SubmissionPending extends React.Component {
       <View
         style={{
           flex: 1,
-          backgroundColor: 'rgba(200,200,200,0.8)',
+          backgroundColor: 'rgba(200,200,200,0.9)',
           position: 'absolute',
           width: '100%',
-          height: 60,
+          height: 40,
           alignContent: 'space-around',
           top: 0,
           justifyContent: 'space-between',

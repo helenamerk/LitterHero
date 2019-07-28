@@ -7,6 +7,7 @@ import {
   FlatList,
   Image,
   Keyboard,
+  ActionSheetIOS,
 } from 'react-native';
 import {SafeAreaView} from 'react-navigation';
 import * as Permissions from 'expo-permissions';
@@ -27,10 +28,31 @@ import {Ionicons} from '@expo/vector-icons';
 import SubmissionPending from '../components/SubmissionPending';
 
 class CameraScreen extends React.Component {
-  static navigationOptions = ({navigation}) => {
+  static navigationOptions = ({navigation, navigationOptions}) => {
+    const {params} = navigation.state;
+    const titleExists = !!navigation.getParam('title');
+    if (!titleExists) {
+      return {
+        header: () => null,
+        /* These values are used instead of the shared configuration! */
+      };
+    }
+
     return {
-      header: () => null,
+      title: navigation.getParam('title'),
       /* These values are used instead of the shared configuration! */
+      headerStyle: {
+        backgroundColor: navigationOptions.headerTintColor,
+      },
+      headerTintColor: navigationOptions.headerStyle.backgroundColor,
+      headerLeft: (
+        <Button
+          clear
+          title={navigation.getParam('buttonInfoText')}
+          type='clear'
+          onPress={navigation.getParam('toggleButton')}
+        />
+      ),
     };
   };
 
@@ -46,7 +68,8 @@ class CameraScreen extends React.Component {
     location: {},
     lastUpdated: null,
     user_id: '',
-    toggleAll: true, // defaults to showing only user's posts
+    toggleAll: false, // defaults to showing only user's posts
+    swiperIndex: 1,
   };
 
   updateData = async () => {
@@ -64,14 +87,15 @@ class CameraScreen extends React.Component {
   };
 
   async componentDidMount() {
+    this.props.navigation.setParams({toggleButton: this.toggleButton});
+
     console.log(await Storage.getItem('user_id'));
     const {status} = await Permissions.askAsync(Permissions.CAMERA);
     this.setState({hasCameraPermission: status === 'granted'});
     const user_id = await Storage.getItem('user_id');
     this.setState({user_id: user_id});
 
-    console.log(this.state.user_id);
-    this.updateData();
+    this.updateData(this.state.user_id);
   }
   componentWillMount() {
     this.keyboardDidShowListener = Keyboard.addListener(
@@ -102,10 +126,30 @@ class CameraScreen extends React.Component {
     this.setState({charCountStyle: styles.invisible});
   }
 
+  _onOpenActionSheet = () => {
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        options: ['Cancel', 'Pothole', 'Feces', 'Needles', 'Graffiti', 'Trash'],
+        cancelButtonIndex: 0,
+        title: 'Categorize Ticket',
+        message:
+          'What are you reporting? The city will prioritize dangerous items and health concerns.',
+      },
+      (buttonIndex) => {
+        if (buttonIndex == 0) {
+          this.deletePicture();
+        } else {
+          this.handleSubmitTicket(buttonIndex - 1);
+        }
+      }
+    );
+  };
+
   // take a photo, then navigate to photo screen for review
   takeAndLocatePicture = async () => {
     if (this.camera) {
       const options = {quality: 1, base64: true};
+      this._onOpenActionSheet();
       const imageData = await this.camera.takePictureAsync(options);
       const loc = await this.getCurrentLocation();
 
@@ -125,7 +169,7 @@ class CameraScreen extends React.Component {
       backgroundColor: colors.MISCHKA,
       justifyContent: 'center',
       alignItems: 'center',
-      paddingTop: 50,
+      paddingTop: 0,
       alignContent: 'space-evenly',
       flexDirection: 'column',
     };
@@ -161,6 +205,9 @@ class CameraScreen extends React.Component {
     //console.log('i');
     //console.log(i);
     this.upvoteTicket(i);
+    this.props.navigation.navigate('ImageScreen', {
+      image_uri: this.state.image,
+    });
 
     //console.log('ticket pressed');
   }
@@ -184,7 +231,7 @@ class CameraScreen extends React.Component {
   };
 
   handleSubmitTicket = (selectedServiceIndex) => {
-    this.setState({infoText: 'Submitting...'});
+    this.setState({infoText: 'Submitting to city...'});
     // submitting ticket!
     submitTicket(
       this.state.image,
@@ -195,8 +242,6 @@ class CameraScreen extends React.Component {
       .then((res) => {
         if (res.status == 200) {
           this.setState({infoText: 'Successful Post'});
-          //
-
           this.updateData();
         } else {
           this.setState({infoText: 'Error Submitting'});
@@ -217,6 +262,36 @@ class CameraScreen extends React.Component {
     this.setState({image: null});
   };
 
+  onSwipe = (index) => {
+    console.log('index changed', index);
+    this.setState({swiperIndex: index});
+    if (index == 0) {
+      this.props.navigation.setParams({title: 'Ticket Feed'});
+      this.setState({toggleAll: false});
+      this.props.navigation.setParams({buttonInfoText: 'Show All'});
+    } else if (index == 1) {
+      this.props.navigation.setParams({title: null});
+      this.props.navigation.setParams({buttonInfoText: null});
+    } else if (index == 2) {
+      this.props.navigation.setParams({title: null});
+      this.props.navigation.setParams({buttonInfoText: null});
+    } else if (index == 3) {
+      this.props.navigation.setParams({title: null});
+      this.props.navigation.setParams({buttonInfoText: null});
+    }
+  };
+
+  toggleButton = () => {
+    console.log('hello');
+    this.setState({toggleAll: !this.state.toggleAll});
+    this.updateData();
+    if (this.state.toggleAll == false) {
+      this.props.navigation.setParams({buttonInfoText: 'Show All'});
+    } else {
+      this.props.navigation.setParams({buttonInfoText: 'My Tickets'});
+    }
+  };
+
   render() {
     const {hasCameraPermission, image} = this.state;
     const limit = 100;
@@ -233,13 +308,15 @@ class CameraScreen extends React.Component {
           horizontal={true}
           loop={false}
           showsPagination={false}
-          index={1}
+          index={this.state.swiperIndex}
+          onIndexChanged={this.onSwipe}
+          onScrollBeginDrag={this.onScrollBegin}
         >
           <View style={this.viewStyle()}>
-            <View style={{flexDirection: 'row', marginBottom: 15}}>
+            {/*<View style={{flexDirection: 'row', marginBottom: 15}}>
               <Button
                 raised
-                title={this.state.toggleAll ? 'All Tickets' : 'Your Tickets'}
+                title={this.state.toggleAll ? 'All Tickets' : 'Your Tickets'} // toggleAll false => get only use tickets, show button for all ticekts
                 type='outline'
                 onPress={() => {
                   this.setState({toggleAll: !this.state.toggleAll});
@@ -248,15 +325,7 @@ class CameraScreen extends React.Component {
                 style={{padding: 0, margin: 0}}
                 containerStyle={{marginRight: 10}}
               />
-              <Text
-                style={{
-                  fontSize: 30,
-                  color: colors.REAL_GREY,
-                }}
-              >
-                Ticket Feed
-              </Text>
-            </View>
+            </View>*/}
             {this.state.data.length > 0 && (
               <FlatList
                 style={{width: '100%'}}
@@ -297,91 +366,11 @@ class CameraScreen extends React.Component {
                   marginTop: 0,
                 }}
               >
-                <TouchableOpacity
-                  onPress={() => {
-                    //console.log('image pressed');
-                    //this._input.focus();
-                  }}
-                  style={{width: '100%', height: '100%'}}
-                >
-                  <Image
-                    style={styles.largeImage}
-                    resizeMode={'cover'}
-                    source={{uri: image}}
-                  />
-                </TouchableOpacity>
-                <View
-                  style={{
-                    position: 'absolute',
-                    flex: 1,
-                    top: 150,
-                    flexDirection: 'row',
-                    alignContent: 'center',
-                    justifyContent: 'space-evenly',
-                    width: '100%',
-                  }}
-                >
-                  {/**Note: submit ticket id hardcoded and mapped to service code */}
-                  <Button
-                    raised
-                    title='Feces'
-                    type='outline'
-                    onPress={() => this.handleSubmitTicket(0)}
-                  />
-                  <Button
-                    raised
-                    title='Needle'
-                    type='outline'
-                    onPress={() => this.handleSubmitTicket(1)}
-                  />
-                  <Button
-                    raised
-                    title='Graffiti'
-                    type='outline'
-                    onPress={() => this.handleSubmitTicket(2)}
-                  />
-                  <Button
-                    raised
-                    title='Pothole'
-                    type='outline'
-                    onPress={() => this.handleSubmitTicket(3)}
-                  />
-                  <Button
-                    raised
-                    title='Trash'
-                    type='outline'
-                    onPress={() => this.handleSubmitTicket(4)}
-                  />
-                </View>
-                <View
-                  style={{
-                    flex: 1,
-                    backgroundColor: 'transparent',
-                    flexDirection: 'row-reverse',
-                  }}
-                >
-                  <TouchableOpacity
-                    style={styles.cameraScreenStyle}
-                    onPress={this.deletePicture}
-                  >
-                    <Ionicons
-                      name='md-close-circle-outline'
-                      size={40}
-                      color='white'
-                    />
-                    <Text
-                      style={{
-                        fontSize: 25,
-                        marginBottom: 30,
-                        marginTop: 10,
-                        color: 'white',
-                      }}
-                    >
-                      {' '}
-                      Delete Image{' '}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                <Image
+                  style={styles.largeImage}
+                  resizeMode={'cover'}
+                  source={{uri: image}}
+                />
               </View>
             )}
             {!image && (
@@ -412,22 +401,7 @@ class CameraScreen extends React.Component {
                         marginTop: 10,
                         color: 'white',
                       }}
-                    >
-                      {' '}
-                      File Ticket{' '}
-                    </Text>
-                    {/* Add an animated button?
-                  <Lottie
-                    ref={(animation) => {
-                      this.animation = animation;
-                    }}
-                    style={{
-                      width: 50,
-                      height: 50,
-                      backgroundColor: '#fff',
-                    }}
-                    source={require('../assets/take_photo.json')}
-                  /> */}
+                    />
                   </TouchableOpacity>
                 </View>
               </Camera>
@@ -453,7 +427,7 @@ class CameraScreen extends React.Component {
                 fontSize: 30,
                 color: colors.REAL_GREY,
                 padding: 30,
-                textAlign: 'center',
+                textAlign: 'left',
               }}
             >
               To report urgent incidents, reach out to 911 directly.
