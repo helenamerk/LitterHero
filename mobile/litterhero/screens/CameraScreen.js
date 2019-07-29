@@ -96,6 +96,8 @@ class CameraScreen extends React.Component {
     this.setState({user_id: user_id});
 
     this.updateData(this.state.user_id);
+
+    this.getCurrentLocation();
   }
   componentWillMount() {
     this.keyboardDidShowListener = Keyboard.addListener(
@@ -201,15 +203,12 @@ class CameraScreen extends React.Component {
     this.setState({data: data});
   };
 
-  onTicketPress(i) {
-    //console.log('i');
-    //console.log(i);
-    this.upvoteTicket(i);
-    this.props.navigation.navigate('ImageScreen', {
-      image_uri: this.state.image,
-    });
-
-    //console.log('ticket pressed');
+  onTicketPress(i, image) {
+    console.log('pressed.');
+    // this.upvoteTicket(i);
+    // this.props.navigation.navigate('ImageScreen', {
+    //   image_uri: image,
+    // });
   }
 
   resetAnimation = () => {
@@ -221,7 +220,7 @@ class CameraScreen extends React.Component {
     return navigator.geolocation.getCurrentPosition(
       (location) => {
         //console.log('location found!');
-        //console.log(location);
+        console.log(location.coords);
         this.setState({location: location.coords});
         return location.coords;
       },
@@ -233,6 +232,8 @@ class CameraScreen extends React.Component {
   handleSubmitTicket = (selectedServiceIndex) => {
     this.setState({infoText: 'Submitting to city...'});
     // submitting ticket!
+    console.log('ack.');
+    console.log(this.state.location.latitude);
     submitTicket(
       this.state.image,
       //this.state.description,
@@ -256,9 +257,6 @@ class CameraScreen extends React.Component {
 
         //console.log(err);
       });
-
-    // clearing content
-    //console.log('hello');
     this.setState({image: null});
   };
 
@@ -333,7 +331,7 @@ class CameraScreen extends React.Component {
                 renderItem={({item, index}) => (
                   <ListTicket
                     ticket={item}
-                    onPress={() => this.onTicketPress(index)}
+                    onPress={() => this.onTicketPress(index, item.image_url)}
                   />
                 )}
                 keyExtractor={(item) => item.id.toString()}
@@ -407,6 +405,26 @@ class CameraScreen extends React.Component {
               </Camera>
             )}
             {notify && <SubmissionPending label={this.state.infoText} />}
+          </View>
+          <View style={this.viewStyle()}>
+            <Text
+              style={{
+                fontSize: 20,
+                color: colors.BLACK,
+                padding: 30,
+                textAlign: 'left',
+              }}
+            >
+              What is LitterHero?{'\n\n'}LitterHero helps concerned citizens
+              report sanitation issues to the city. It directly integrates with
+              ticket management systems to hold the city accountable.
+              {'\n\n'}What is the state of this project?{'\n\n'}Currently we
+              report to their development environment - this means the reports
+              are not yet live. This was built in 3 days while competing in
+              StartupBus as a proof of concept. {'\n\n'}How can I help?{'\n\n'}
+              To make this a reality and hold our cities accountable, DM
+              @BeALitterHero on Twitter, or email helena@merkonline.com.
+            </Text>
           </View>
           <View style={this.viewStyle()}>
             <Text

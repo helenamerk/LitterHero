@@ -8,6 +8,7 @@ export default class ListTicket extends React.Component {
   render() {
     const {ticket, onPress} = this.props;
     //let favorited = animal.isFavorite || false;
+    console.log(ticket);
     const location = ticket.location || ticket.lat + ', ' + ticket.long;
     return (
       <ListItem

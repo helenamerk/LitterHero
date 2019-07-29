@@ -20,7 +20,7 @@ class LoadingScreen extends React.Component {
   };
 
   componentDidMount() {
-    Storage.removeItem('user_id'); // Uncomment for re-login per use case.
+    //Storage.removeItem('user_id'); // Uncomment for re-login per use case.
     this.animation.play();
     Storage.getItem('user_id').then((value) => {
       if (value === null) {

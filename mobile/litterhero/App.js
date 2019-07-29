@@ -41,15 +41,25 @@ const MainStack = createStackNavigator(
 class ImageScreen extends React.Component {
   render() {
     let {navigation} = this.props;
+    console.log('help');
     console.log(navigation.getParam('image_uri'));
     return (
-      <View style={styles.formFields}>
-        <InverseButton
-          onPress={() => this.props.navigation.goBack()}
-          label='Dismiss'
-        />
+      <View style={{flex: 1, width: '100%', height: '100%'}}>
+        <View style={styles.formFields}>
+          <InverseButton
+            onPress={() => this.props.navigation.goBack()}
+            label='Dismiss'
+          />
+        </View>
         <Image
-          style={{flex: 1, width: '100%', height: '100%'}}
+          style={{
+            flex: 1,
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+          }}
           resizeMode={'cover'}
           source={{uri: navigation.getParam('image_uri')}}
         />
